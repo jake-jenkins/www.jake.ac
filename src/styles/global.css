@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+p {
+    margin-bottom: 16px;
+}
+
+#app {
+    min-height: 100dvh;
+}
+
+.heroWrapper {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+    margin-bottom: 16px;
+    z-index: 10;
+}
+
+.heroImage {
+    object-fit: cover;
+    object-position: center;
+}
+
+h1 {
+    @apply text-indigo-800 text-3xl lg:text-5xl mt-2 mb-4 font-extrabold;
+}

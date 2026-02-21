@@ -7,7 +7,7 @@ image: "intranet_dv17j3vint.webp"
 imagef: "intranet.webp"
 thumb: "intranet_9o1zmsfnnm.webp"
 tags:
-  - ofice365
+  - office365
   - css
   - html
   - javascript

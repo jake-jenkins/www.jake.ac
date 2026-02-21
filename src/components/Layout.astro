@@ -18,8 +18,25 @@ const title =
   <body>
     <div class="flex min-h-dvh flex-col">
       <Header view={Astro.props.view} />
-      <main class="container mx-auto flex-1 py-22 px-12">
-        <slot />
+      <main class="pt-22 flex-1">
+        {
+          Astro.props.heroImage && (
+            <div class="relative -mt-10 lg:-mt-6 w-full max-h-[400px] h-[400px] overflow-hidden">
+              <img
+                src={`/images/${Astro.props.heroImage}`}
+                alt={
+                  Astro.props.heroDescription
+                    ? `${Astro.props.heroDescription} image`
+                    : ""
+                }
+                class="w-full h-full object-cover object-center"
+              />
+            </div>
+          )
+        }
+        <div class="container mx-auto px-10">
+          <slot />
+        </div>
       </main>
       <Footer />
     </div>

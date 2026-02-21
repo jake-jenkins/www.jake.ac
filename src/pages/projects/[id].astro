@@ -8,13 +8,20 @@ export async function getStaticPaths() {
     props: { project },
   }));
 }
+import { tags, type Tag } from "../../consts";
 const { project } = Astro.props;
 const { Content } = await render(project);
 ---
 
-<Layout view="home" title={project.data.title}>
-  <>
+<Layout
+  view="home"
+  title={project.data.title}
+  heroImage={project.data.image}
+  heroDescription={project.data.description}
+>
+  <div class="mt-8">
     <h1>{project.data.title}</h1>
     <Content />
-  </>
+    <p>{project.data.tags.map((tag) => tags[tag as Tag]).join(", ")}</p>
+  </div>
 </Layout>
