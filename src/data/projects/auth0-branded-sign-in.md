@@ -14,6 +14,4 @@ created: "2025-04-21 15:14:16.400Z"
 updated: "2025-04-21 23:33:03.617Z"
 ---
 
-# Auth0 Branded Sign in
-
 Jake has expertise in optimising and configuring Auth0 to provide a secure, seamless, user experience for sign up and sign in.

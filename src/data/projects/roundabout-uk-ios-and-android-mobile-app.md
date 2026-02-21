@@ -19,6 +19,4 @@ created: "2025-04-21 15:12:27.196Z"
 updated: "2025-04-21 23:33:59.710Z"
 ---
 
-# Roundabout UK iOS and Android Mobile App
-
 Roundabout is a location-aware mobile application that allows users to find their nearest businesses, events, charities, sports and health venues.

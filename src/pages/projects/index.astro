@@ -5,14 +5,13 @@ import Layout from "../../components/Layout.astro";
 const allProjects = await getCollection("projects");
 ---
 
-<Layout>
+<Layout view="projects" title="Projects">
   <>
     {
       allProjects.map((project) => (
-        <a href={`/projects/${project.id}` }>
+        <a href={`/projects/${project.id}`} class="mb-8 block">
           <h2>{project.data.title}</h2>
           <p>{project.data.description}</p>
-          <p>{project.id}</p>
         </a>
       ))
     }
