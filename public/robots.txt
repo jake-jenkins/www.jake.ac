@@ -1,4 +1,4 @@
-User-agent: *
-Allow: /
+user-agent: *
+allow: /
 
-Sitemap: https://www.jake.ac/sitemap-index.xml
+sitemap: https://www.jake.ac/sitemap-index.xml
