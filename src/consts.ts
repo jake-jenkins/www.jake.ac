@@ -28,3 +28,11 @@ export const tags = {
 } as const;
 
 export type Tag = keyof typeof tags;
+
+export const categories = {
+    apps: "Apps",
+    websites: "Websites",
+    integrations: "Integrations"
+} as const;
+
+export type Category = keyof typeof categories;

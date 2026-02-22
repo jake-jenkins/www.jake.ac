@@ -1,18 +1,17 @@
 ---
 import { getCollection } from "astro:content";
 import Layout from "../../components/Layout.astro";
+import Card from "../../components/Card.astro";
 
 const allProjects = await getCollection("projects");
 ---
 
 <Layout view="projects" title="Projects">
+  <h1>Projects</h1>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
     {
       allProjects.map((project) => (
-        <a href={`/projects/${project.id}`} class="mb-8 block">
-          <h2>{project.data.title}</h2>
-          <p>{project.data.description}</p>
-        </a>
+        <Card project={project.data} slug={project.id} />
       ))
     }
   </div>

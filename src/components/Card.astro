@@ -1,0 +1,27 @@
+---
+import { type Category, categories } from "../consts";
+
+const {project, slug} = Astro.props;
+---
+
+<a
+  href={`projects/${slug}`}
+  class="border-b-2 border-lime-500 bg-white shadow-md w-full mb-8"
+>
+  <img
+    class="w-full"
+    src={`/images/thumbs/${project.thumb}`}
+    width={400}
+    height={190}
+    alt={`${project.title} image`}
+  />
+  <div class="h-48 p-4 mb-4 flex flex-col">
+    <div class="text-xl flex font-medium h-16 items-center pb-2">
+      {project.title}
+    </div>
+    <span class="flex-1">{project.description}</span>
+    <span class="block mt-6 text-sm">
+      {categories[project.category as Category]}</span
+    >
+  </div>
+</a>

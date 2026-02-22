@@ -4,11 +4,12 @@ import tailwindcss from "@tailwindcss/vite";
 
 import mdx from "@astrojs/mdx";
 
-// https://astro.build/config
-export default defineConfig({
-  vite: {
-plugins: [tailwindcss()],
-},
+import sitemap from "@astrojs/sitemap";
 
-  integrations: [mdx()],
+export default defineConfig({
+  site: "https://www.jake.ac",
+  vite: {
+    plugins: [tailwindcss()],
+  },
+  integrations: [mdx(), sitemap()],
 });
