@@ -27,7 +27,7 @@ export const tags = {
     office365: "Office 365"
 } as const;
 
-export type Tag = keyof typeof tags;
+export type TagItem = keyof typeof tags;
 
 export const categories = {
     apps: "Apps",

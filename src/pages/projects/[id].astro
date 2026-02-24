@@ -8,7 +8,8 @@ export async function getStaticPaths() {
     props: { project },
   }));
 }
-import { tags, type Tag } from "../../consts";
+import { tags, type TagItem } from "../../consts";
+import Tag from "../../components/Tag.astro";
 const { project } = Astro.props;
 const { Content } = await render(project);
 ---
@@ -22,6 +23,12 @@ const { Content } = await render(project);
   <div class="mt-8">
     <h1>{project.data.title}</h1>
     <Content />
-    <p>{project.data.tags.map((tag) => tags[tag as Tag]).join(", ")}</p>
+    <p>
+      {
+        project.data.tags.map((tag) => (
+          <Tag key={tag}>{tags[tag as TagItem]}</Tag>
+        ))
+      }
+    </p>
   </div>
 </Layout>
