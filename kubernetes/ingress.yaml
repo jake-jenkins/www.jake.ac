@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jakeac
+  namespace: jakeac
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - www.jake.ac
+      secretName: cloudflare-origin-cert-jake-ac
+  rules:
+    - host: www.jake.ac
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jakeac
+                port:
+                  number: 8080
+
