@@ -1,0 +1,51 @@
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: jakeac
+  namespace: flux-system
+spec:
+  image: ghcr.io/jake-jenkins/www.jake.ac
+  interval: 1m
+  secretRef:
+    name: ghcr-pull-secret
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: jakeac
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: jakeac
+  filterTags:
+    pattern: '^main-(?P<build>[0-9]+)$'
+    extract: '$build'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: jakeac
+  namespace: flux-system
+spec:
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: jakeac
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        name: fluxcdbot
+        email: fluxcdbot@users.noreply.github.com
+      messageTemplate: "chore: deploy {{range .Changed.Changes}}{{print .NewValue}}{{end}}"
+    push:
+      branch: main
+  update:
+    path: ./kubernetes
+    strategy: Setters
+
