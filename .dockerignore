@@ -2,9 +2,6 @@
 .git
 .github
 dist
-clusters
-kubernetes
 node_modules
 npm-debug.log*
 README.md
-

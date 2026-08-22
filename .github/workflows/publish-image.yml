@@ -4,13 +4,6 @@ on:
   push:
     branches:
       - main
-    # Flux commits only the selected image tag. Ignoring GitOps-only changes
-    # prevents that commit from building another image in an endless loop.
-    paths-ignore:
-      - kubernetes/**
-      - clusters/**
-      - DEPLOYMENT.md
-  workflow_dispatch:
 
 concurrency:
   group: publish-main
