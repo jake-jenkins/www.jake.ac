@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+    # Flux commits only the selected image tag. Ignoring GitOps-only changes
+    # prevents that commit from building another image in an endless loop.
+    paths-ignore:
+      - kubernetes/**
+      - clusters/**
+      - DEPLOYMENT.md
+  workflow_dispatch:
 
 concurrency:
   group: publish-main
@@ -16,6 +23,8 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -23,6 +32,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Run deployment tests
+        run: python3 -m unittest discover -s tests -v
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -47,12 +59,77 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
 
       - name: Build and push image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
+          pull: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Test exact image with production runtime restrictions
+        env:
+          IMAGE: ghcr.io/jake-jenkins/www.jake.ac@${{ steps.build.outputs.digest }}
+        run: bash deploy/smoke-image.sh
+
+  scan-image:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Log in to GHCR for scanning
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Scan immutable image for fixable high and critical vulnerabilities
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ghcr.io/jake-jenkins/www.jake.ac@${{ needs.build-and-push.outputs.digest }}
+          severity-cutoff: high
+          only-fixed: true
+          fail-build: true
+          output-format: json
+          output-file: vulnerability-report.json
+      - name: Retain vulnerability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-vulnerability-report
+          path: vulnerability-report.json
+          retention-days: 30
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && vars.JAKE_DEPLOY_ENABLED == 'true'
+    needs: [build-and-push, scan-image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://www.jake.ac
+    permissions:
+      contents: write
+    env:
+      DEPLOY_IMAGE: ghcr.io/jake-jenkins/www.jake.ac@${{ needs.build-and-push.outputs.digest }}
+      DEPLOY_REVISION: ${{ github.sha }}
+      DEPLOY_ORIGIN_IP: ${{ vars.JAKE_ORIGIN_IP }}
+    steps:
+      - name: Check out deployment tools
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Publish desired production image
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bash deploy/publish-manifest.sh
+      - name: Wait for verified deployment
+        run: python3 deploy/wait-for-deploy.py
+
