@@ -1,0 +1,43 @@
+name: Rollback production
+
+on:
+  workflow_dispatch:
+    inputs:
+      digest:
+        description: 'Previously published sha256: digest (including sha256:)'
+        required: true
+        type: string
+      revision:
+        description: 'Full source commit SHA for that image'
+        required: true
+        type: string
+
+concurrency:
+  group: publish-main
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://www.jake.ac
+    permissions:
+      contents: write
+    env:
+      DEPLOY_IMAGE: ghcr.io/jake-jenkins/www.jake.ac@${{ inputs.digest }}
+      DEPLOY_REVISION: ${{ inputs.revision }}
+      DEPLOY_ORIGIN_IP: ${{ vars.JAKE_ORIGIN_IP }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Publish rollback manifest
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bash deploy/publish-manifest.sh
+      - name: Wait for healthy rollback
+        run: python3 deploy/wait-for-deploy.py
+

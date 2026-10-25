@@ -1,0 +1,12 @@
+[Unit]
+Description=Deploy a healthy Jake.ac image from the GitHub Actions manifest
+After=network-online.target docker.service nginx.service
+Wants=network-online.target
+Requires=docker.service nginx.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/jake-deploy/deploy.py --watch
+TimeoutStartSec=15min
+UMask=0022
+

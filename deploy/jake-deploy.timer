@@ -1,0 +1,12 @@
+[Unit]
+Description=Check for GitHub Actions deployments every 15 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=15s
+AccuracySec=1s
+Unit=jake-deploy.service
+
+[Install]
+WantedBy=timers.target
+
