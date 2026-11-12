@@ -106,3 +106,29 @@ jobs:
           name: image-vulnerability-report
           path: vulnerability-report.json
           retention-days: 30
+
+  promote-london:
+    if: github.ref == 'refs/heads/main'
+    needs: [build-and-push, scan-image]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Log in to GHCR for promotion
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote the scanned image for Flux
+        shell: bash
+        env:
+          IMAGE_DIGEST: ${{ needs.build-and-push.outputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          printf -v tag 'london-%012d-%06d' "$GITHUB_RUN_NUMBER" "$GITHUB_RUN_ATTEMPT"
+          docker buildx imagetools create --prefer-index=false --tag "$image:$tag" "$image@$IMAGE_DIGEST"
+          promoted="$(docker buildx imagetools inspect "$image:$tag" --format '{{json .Manifest}}' | jq -er '.digest')"
+          test "$promoted" = "$IMAGE_DIGEST"
