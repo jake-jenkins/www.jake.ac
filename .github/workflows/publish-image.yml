@@ -120,6 +120,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up the Flux CLI
+        uses: fluxcd/flux2/action@889be9d6cc8afa8ed639e1e1ba4ab678e3b38d8c # v2.9.4
+        with:
+          version: '2.9.4'
       - name: Promote the scanned image for Flux
         shell: bash
         env:
@@ -128,7 +132,19 @@ jobs:
           set -euo pipefail
           [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
-          printf -v tag 'london-%012d-%06d' "$GITHUB_RUN_NUMBER" "$GITHUB_RUN_ATTEMPT"
-          docker buildx imagetools create --prefer-index=false --tag "$image:$tag" "$image@$IMAGE_DIGEST"
-          promoted="$(docker buildx imagetools inspect "$image:$tag" --format '{{json .Manifest}}' | jq -er '.digest')"
-          test "$promoted" = "$IMAGE_DIGEST"
+          release="0.0.0-london.$GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT"
+          manifest="$(mktemp)"
+          trap 'rm -f "$manifest"' EXIT
+          jq -n --arg digest "$IMAGE_DIGEST" '{
+            apiVersion: "v1",
+            kind: "ConfigMap",
+            metadata: {
+              name: "london-release-jakeac",
+              namespace: "flux-system",
+              labels: {"reconcile.fluxcd.io/watch": "Enabled"}
+            },
+            data: {"LONDON_JAKE_DIGEST": $digest}
+          }' > "$manifest"
+          flux push artifact "oci://$image:$release" -f "$manifest" \
+            --source "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --revision "$GITHUB_REF_NAME@sha1:$GITHUB_SHA"
