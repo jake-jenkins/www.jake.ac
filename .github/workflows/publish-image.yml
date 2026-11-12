@@ -133,8 +133,9 @@ jobs:
           [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
           image="ghcr.io/${GITHUB_REPOSITORY,,}"
           release="0.0.0-london.$GITHUB_RUN_NUMBER.$GITHUB_RUN_ATTEMPT"
-          manifest="$(mktemp)"
-          trap 'rm -f "$manifest"' EXIT
+          artifact="$(mktemp -d)"
+          manifest="$artifact/release.yaml"
+          trap 'rm -rf "$artifact"' EXIT
           jq -n --arg digest "$IMAGE_DIGEST" '{
             apiVersion: "v1",
             kind: "ConfigMap",
@@ -145,6 +146,6 @@ jobs:
             },
             data: {"LONDON_JAKE_DIGEST": $digest}
           }' > "$manifest"
-          flux push artifact "oci://$image:$release" -f "$manifest" \
+          flux push artifact "oci://$image:$release" -f "$artifact" \
             --source "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
             --revision "$GITHUB_REF_NAME@sha1:$GITHUB_SHA"
